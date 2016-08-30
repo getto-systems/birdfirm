@@ -4,7 +4,7 @@ birdfirm_main(){
   local root
   local hostfile
   local path
-  root=$HOME/.birdfirm
+  root=$HOME/.birdfirm/hosts
 
   if [ -d "$root" ]; then
     hostfile=$(ls -1 $root | peco)
