@@ -10,6 +10,8 @@ birdfirm_main(){
   root=$HOME/.birdfirm/hosts
   hosts=$root.txt
 
+  trap birdfirm_hungup 1
+
   if [ -f $hosts ]; then
     echo "birdfirm locked. maybe running? (lock file : $hosts)"
     return
@@ -31,11 +33,18 @@ birdfirm_main(){
           $path
         fi
       else
-        rm -f $hosts
+        birdfirm_cleanup
         return
       fi
     done
   fi
+}
+birdfirm_hungup(){
+  birdfirm_cleanup
+  exit 1
+}
+birdfirm_cleanup(){
+  rm -f $hosts
 }
 
 birdfirm_main
