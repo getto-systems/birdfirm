@@ -36,10 +36,10 @@ birdfirm_main(){
 }
 birdfirm_build_hosts(){
   ls -1 $root | awk '{print "  " $1}' > $hosts
-  if [ "$(which tmux)" ]; then
+  if [ "$(which tmux 2> /dev/null)" ]; then
     birdfirm_build_hosts_tmux
   fi
-  if [ "$(which docker)" ]; then
+  if [ "$(which docker 2> /dev/null)" ]; then
     birdfirm_build_hosts_docker
   fi
 }
