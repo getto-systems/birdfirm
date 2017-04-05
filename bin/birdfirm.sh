@@ -55,7 +55,7 @@ birdfirm_build_hosts_tmux(){
 birdfirm_build_hosts_docker(){
   local session
   for session in $(docker ps --format "{{.Names}}"); do
-    sed "s/^  $session$/* $session/" -i $hosts
+    sed "s/^  _shell.$session$/# _shell.$session/" -i $hosts
   done
 }
 birdfirm_hungup(){
