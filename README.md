@@ -1,14 +1,23 @@
-# 各環境に tmux で ssh する
+# birdfirm
 
-peco のインストールが必要
+select executables and execute it
+
 
 ## Usage
 
-```bash
-# $HOME/.birdfirm/hosts/project-environment-host
-#!/bin/bash
-
-ssh 192.168.1.100
+```
+./bin/birdfirm
 ```
 
-./bin/birdfirm.sh で $HOME/.birdfirm/hosts 設置してあるファイルを peco で選択して実行する
+### setup
+
+```
+# ~/.birdfirm/bin/some_executable
+#!/bin/bash
+echo hello, birdfirm
+```
+
+
+## Requirements
+
+[peco](https://github.com/peco/peco)
