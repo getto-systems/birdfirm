@@ -20,4 +20,4 @@ echo hello, birdfirm
 
 ## Requirements
 
-[peco](https://github.com/peco/peco)
+[peco : GitHub](https://github.com/peco/peco)
