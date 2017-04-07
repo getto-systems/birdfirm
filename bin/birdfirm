@@ -29,11 +29,11 @@ birdfirm_main(){
 
     read -p "birdfirm: continue? [Y/n] " confirm
     case "$confirm" in
-      Y*|y*)
-        ;;
-      *)
+      N*|n*)
         birdfirm_cleanup
         return
+        ;;
+      *)
         ;;
     esac
   done
