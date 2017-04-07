@@ -1,41 +1,46 @@
 #!/bin/bash
 
 birdfirm_main(){
-  local birdfirm_root
   local root
-  local hosts
-  local hostfile
-  local path
-  birdfirm_root=$HOME/.birdfirm
-  root=$birdfirm_root/hosts
-  hosts=$root.txt
+  local bin
+  local lock
+  local confirm
+
+  root=$HOME/.birdfirm
+  bin=$root/bin
+  lock=$bin.txt
 
   trap birdfirm_hungup 1
+  trap birdfirm_hungup 2
 
-  if [ -f $hosts ]; then
-    echo "birdfirm locked. maybe running? (lock file : $hosts)"
+  if [ -f $lock ]; then
+    echo "birdfirm locked. maybe running? (lock file : $lock)"
     return
   fi
 
-  if [ -d "$root" ]; then
-    while [ true ]; do
-      birdfirm_build_hosts
-      hostfile=$(cat $hosts | peco)
-      hostfile=${hostfile##* }
-      if [ "$hostfile" ]; then
-        path=$root/$hostfile
-        if [ -f "$path" ]; then
-          $path
-        fi
-      else
+  if [ ! -d "$bin" ]; then
+    echo "birdfirm bin not found : $bin"
+    return
+  fi
+
+  while [ true ]; do
+    birdfirm_build_hosts
+    birdfirm_execute
+
+    read -p "birdfirm: continue? [Y/n] " confirm
+    case "$confirm" in
+      Y*|y*)
+        ;;
+      *)
         birdfirm_cleanup
         return
-      fi
-    done
-  fi
+        ;;
+    esac
+  done
 }
+
 birdfirm_build_hosts(){
-  ls -1 $root | awk '{print "  " $1}' > $hosts
+  ls -1 $bin | awk '{print "  " $1}' > $lock
   if [ "$(which tmux 2> /dev/null)" ]; then
     birdfirm_build_hosts_tmux
   fi
@@ -48,22 +53,39 @@ birdfirm_build_hosts_tmux(){
   local session
   for socket in $HOME/.tmux.wrapper/tmux-*.sock; do
     for session in $(tmux -S $socket ls -F '#S' 2> /dev/null); do
-      sed "s/^  $session$/* $session/" -i $hosts
+      sed "s/^  $session$/* $session/" -i $lock
     done
   done
 }
 birdfirm_build_hosts_docker(){
   local session
+  local prefix
+  prefix=_shell
   for session in $(docker ps --format "{{.Names}}"); do
-    sed "s/^  _shell.$session$/# _shell.$session/" -i $hosts
+    sed "s/^  $prefix.$session$/# $prefix.$session/" -i $lock
   done
 }
+
+birdfirm_execute(){
+  local executable
+  local path
+
+  executable=$(cat $lock | peco)
+  executable=${executable##* }
+  if [ "$executable" ]; then
+    path=$bin/$executable
+    if [ -f "$path" ]; then
+      $path
+    fi
+  fi
+}
+
 birdfirm_hungup(){
   birdfirm_cleanup
   exit 1
 }
 birdfirm_cleanup(){
-  rm -f $hosts
+  rm -f $lock
 }
 
 birdfirm_main
