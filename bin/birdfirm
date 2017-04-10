@@ -4,6 +4,8 @@ birdfirm_main(){
   local root
   local bin
   local lock
+  local executable
+  local path
   local confirm
 
   root=$HOME/.birdfirm
@@ -25,11 +27,22 @@ birdfirm_main(){
 
   while [ true ]; do
     birdfirm_build_hosts
-    birdfirm_execute
 
-    read -p "birdfirm: continue? [Y/n] " confirm
+    executable=$(cat $lock | peco)
+    executable=${executable##* }
+    if [ -z "$executable" ]; then
+      birdfirm_cleanup
+      return
+    else
+      path=$bin/$executable
+      if [ -f "$path" ]; then
+        $path
+      fi
+    fi
+
+    read -p "birdfirm: continue? [Y/n] " -n 1 confirm
     case "$confirm" in
-      N*|n*)
+      N|n)
         birdfirm_cleanup
         return
         ;;
@@ -64,20 +77,6 @@ birdfirm_build_hosts_docker(){
   for session in $(docker ps --format "{{.Names}}"); do
     sed "s/^  $prefix.$session$/# $prefix.$session/" -i $lock
   done
-}
-
-birdfirm_execute(){
-  local executable
-  local path
-
-  executable=$(cat $lock | peco)
-  executable=${executable##* }
-  if [ "$executable" ]; then
-    path=$bin/$executable
-    if [ -f "$path" ]; then
-      $path
-    fi
-  fi
 }
 
 birdfirm_hungup(){
