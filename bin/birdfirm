@@ -6,7 +6,7 @@ birdfirm_main(){
   local lock
   local executable
   local path
-  local confirm
+  local count
 
   root=$HOME/.birdfirm
   bin=$root/bin
@@ -40,15 +40,13 @@ birdfirm_main(){
       fi
     fi
 
-    read -p "birdfirm: continue? [Y/n] " -n 1 confirm
-    case "$confirm" in
-      N|n)
-        birdfirm_cleanup
-        return
-        ;;
-      *)
-        ;;
-    esac
+    echo "birdfirm: Ctrl-C to quit"
+    count=0
+    while [ "$count" -lt 5 ]; do
+      echo -n .
+      sleep 0.8
+      count=$((count+1))
+    done
   done
 }
 
