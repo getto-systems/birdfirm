@@ -15,6 +15,7 @@ birdfirm_main(){
   trap birdfirm_hungup 1
   trap birdfirm_hungup 2
   trap birdfirm_hungup 3
+  trap birdfirm_hungup 6
   trap birdfirm_hungup 15
 
   if [ -f $lock ]; then
