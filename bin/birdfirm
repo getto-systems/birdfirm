@@ -14,6 +14,8 @@ birdfirm_main(){
 
   trap birdfirm_hungup 1
   trap birdfirm_hungup 2
+  trap birdfirm_hungup 3
+  trap birdfirm_hungup 15
 
   if [ -f $lock ]; then
     echo "birdfirm locked. maybe running? (lock file : $lock)"
