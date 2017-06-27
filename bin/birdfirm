@@ -3,25 +3,13 @@
 birdfirm_main(){
   local root
   local bin
-  local lock
+  local list
   local executable
   local path
-  local count
 
   root=$HOME/.birdfirm
   bin=$root/bin
-  lock=$bin.txt
-
-  trap birdfirm_hungup 1
-  trap birdfirm_hungup 2
-  trap birdfirm_hungup 3
-  trap birdfirm_hungup 6
-  trap birdfirm_hungup 15
-
-  if [ -f $lock ]; then
-    echo "birdfirm locked. maybe running? (lock file : $lock)"
-    return
-  fi
+  list=$bin.txt
 
   if [ ! -d "$bin" ]; then
     echo "birdfirm bin not found : $bin"
@@ -31,10 +19,9 @@ birdfirm_main(){
   while [ true ]; do
     birdfirm_build_hosts
 
-    executable=$(cat $lock | peco)
+    executable=$(cat $list | fzf)
     executable=${executable##* }
     if [ -z "$executable" ]; then
-      birdfirm_cleanup
       return
     else
       path=$bin/$executable
@@ -42,24 +29,13 @@ birdfirm_main(){
         $path
       fi
     fi
-
-    echo "birdfirm: Ctrl-C to quit"
-    count=0
-    while [ "$count" -lt 5 ]; do
-      echo -n .
-      sleep 0.8
-      count=$((count+1))
-    done
   done
 }
 
 birdfirm_build_hosts(){
-  ls -1 $bin | awk '{print "  " $1}' > $lock
+  ls -1 $bin | awk '{print "  " $1}' > $list
   if [ "$(which tmux 2> /dev/null)" ]; then
     birdfirm_build_hosts_tmux
-  fi
-  if [ "$(which docker 2> /dev/null)" ]; then
-    birdfirm_build_hosts_docker
   fi
 }
 birdfirm_build_hosts_tmux(){
@@ -67,25 +43,9 @@ birdfirm_build_hosts_tmux(){
   local session
   for socket in $HOME/.tmux.wrapper/tmux-*.sock; do
     for session in $(tmux -S $socket ls -F '#S' 2> /dev/null); do
-      sed "s/^  $session$/* $session/" -i $lock
+      sed "s/^  $session$/* $session/" -i $list
     done
   done
-}
-birdfirm_build_hosts_docker(){
-  local session
-  local prefix
-  prefix=_shell
-  for session in $(docker ps --format "{{.Names}}"); do
-    sed "s/^  $prefix.$session$/# $prefix.$session/" -i $lock
-  done
-}
-
-birdfirm_hungup(){
-  birdfirm_cleanup
-  exit 1
-}
-birdfirm_cleanup(){
-  rm -f $lock
 }
 
 birdfirm_main
