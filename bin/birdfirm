@@ -1,5 +1,18 @@
 #!/bin/bash
 
+declare -A birdfirm_cage_args
+declare -A birdfirm_cage_executables
+declare -a birdfirm_cage_names
+
+birdfirm_cage(){
+  local executable
+  executable=$1; shift
+
+  birdfirm_cage_names[${#birdfirm_cage_names[@]}]=$1
+  birdfirm_cage_executables[$1]=$executable
+  birdfirm_cage_args[$1]="$@"
+}
+
 birdfirm_main(){
   local root
   local bin
@@ -9,43 +22,52 @@ birdfirm_main(){
 
   root=$HOME/.birdfirm
   bin=$root/bin
+  rc=$root/rc
   list=$bin.txt
 
-  if [ ! -d "$bin" ]; then
-    echo "birdfirm bin not found : $bin"
-    return
+  if [ -f "$rc" ]; then
+    . $rc
   fi
 
   while [ true ]; do
     birdfirm_build_hosts
 
     executable=$(cat $list | fzf)
-    executable=${executable##* }
     if [ -z "$executable" ]; then
       return
     else
       path=$bin/$executable
       if [ -f "$path" ]; then
         $path
+      else
+        birdfirm_execute_cage $executable
       fi
     fi
   done
 }
 
 birdfirm_build_hosts(){
-  ls -1 $bin | awk '{print "  " $1}' > $list
-  if [ "$(which tmux 2> /dev/null)" ]; then
-    birdfirm_build_hosts_tmux
+  local cage_name
+
+  rm -f $list
+
+  for cage_name in ${birdfirm_cage_names[@]}; do
+    echo "  $cage_name" >> $list
+  done
+
+  if [ -d "$bin" ]; then
+    ls -1 $bin >> $list
   fi
 }
-birdfirm_build_hosts_tmux(){
-  local socket
-  local session
-  for socket in $HOME/.tmux.wrapper/tmux-*.sock; do
-    for session in $(tmux -S $socket ls -F '#S' 2> /dev/null); do
-      sed "s/^  $session$/* $session/" -i $list
-    done
-  done
+
+birdfirm_execute_cage(){
+  local executable
+  local args
+
+  executable=${birdfirm_cage_executables[$1]}
+  args=${birdfirm_cage_args[$1]}
+
+  $executable $args
 }
 
 birdfirm_main
