@@ -15,15 +15,13 @@ birdfirm_cage(){
 
 birdfirm_main(){
   local root
-  local bin
   local list
   local executable
   local path
 
   root=$HOME/.birdfirm
-  bin=$root/bin
   rc=$root/rc
-  list=$bin.txt
+  list=$root/cages.txt
 
   if [ -f "$rc" ]; then
     . $rc
@@ -36,12 +34,7 @@ birdfirm_main(){
     if [ -z "$executable" ]; then
       return
     else
-      path=$bin/$executable
-      if [ -f "$path" ]; then
-        $path
-      else
-        birdfirm_execute_cage $executable
-      fi
+      birdfirm_execute_cage $executable
     fi
   done
 }
@@ -54,10 +47,6 @@ birdfirm_build_hosts(){
   for cage_name in ${birdfirm_cage_names[@]}; do
     echo "  $cage_name" >> $list
   done
-
-  if [ -d "$bin" ]; then
-    ls -1 $bin >> $list
-  fi
 }
 
 birdfirm_execute_cage(){
